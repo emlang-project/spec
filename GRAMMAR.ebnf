@@ -1,4 +1,4 @@
-(* Emlang Grammar - Version 0.1 *)
+(* Emlang Grammar - Version 0.1.0 *)
 (* EBNF notation following ISO/IEC 14977 *)
 
 document        = block , { separator , block } ;

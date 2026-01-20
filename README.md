@@ -1,6 +1,6 @@
 # Emlang
 
-> **Status**: v0.1 — Draft specification
+> **Status**: v0.1.0 — Draft specification
 
 Emlang is a text-based DSL for describing systems with Event Modeling patterns.
 

@@ -1,6 +1,4 @@
-# Emlang Specification
-
-**Version 0.1**
+# Emlang Specification v0.1.0
 
 Emlang is a text-based DSL for describing systems with Event Modeling patterns.
 
