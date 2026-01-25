@@ -3,19 +3,19 @@
 ![License](https://img.shields.io/github/license/emlang-project/spec)
 ![GitHub release](https://img.shields.io/github/v/release/emlang-project/spec)
 
+Emlang is a YAML-based DSL for describing systems with Event Modeling patterns.
+
 ## Quick Reference
 
-| Notation | Type      | Description           |
-|----------|-----------|-----------------------|
-| `/.../`  | Flow      | Business scenario     |
-| `%...%`  | Trigger   | Initiates an action   |
-| `[...]`  | Command   | Action/intent         |
-| `<...>`  | Event     | Past fact             |
-| `!...!`  | Exception | Failure/error         |
-| `{...}`  | View      | Projection/Read Model |
-| `?...?`  | Test      | Given-When-Then test  |
+| Type      | Short | Acronym | Long         | Description            |
+|-----------|-------|---------|--------------|------------------------|
+| Trigger   | `t:`  | `trg:`  | `trigger:`   | Initiates an action    |
+| Command   | `c:`  | `cmd:`  | `command:`   | Action/intent          |
+| Event     | `e:`  | `evt:`  | `event:`     | Past fact              |
+| Exception | `x:`  | `err:`  | `exception:` | Failure/error          |
+| View      | `v:`  | —       | `view:`      | Projection/Read Model  |
 
-See [SPEC.md](SPEC.md) for the complete specification and [GRAMMAR.ebnf](GRAMMAR.ebnf) for the formal grammar.
+See [SPEC.md](SPEC.md) for the complete specification and [schema.json](schema.json) for validation.
 
 ## Examples
 
@@ -23,104 +23,126 @@ See [SPEC.md](SPEC.md) for the complete specification and [GRAMMAR.ebnf](GRAMMAR
 
 A complete flow showing a user registering through a form:
 
-```emlang
-/RegisterUser/
-  %Customer:RegistrationForm%
-  [RegisterUser]
-    email
-    password
-  <User:UserRegistered>
-    userId
-    email
-    registeredAt
-  {UserProfile}
-    userId
-    email
+```yaml
+---
+flows:
+  RegisterUser:
+    - t: Customer/RegistrationForm
+    - c: RegisterUser
+      props:
+        email: string
+        password: string
+    - e: User/UserRegistered
+      props:
+        userId: uuid
+        email: string
+        registeredAt: iso8601
+    - v: UserProfile
 ```
 
 ### E-Commerce Checkout
 
-Multiple sequences within a single flow, representing chronological breaks:
+Multiple flows representing the checkout process:
 
-```emlang
-/Checkout/
-  %Customer:Cart%
-  [StartCheckout]
-  <Order:CheckoutStarted>
-    orderId
-    customerId
-    items
-  {CheckoutSummary}
-  ---
-  %Customer:CheckoutSummary%
-  [SubmitPayment]
-    orderId
-    paymentMethod
-  <Order:PaymentSubmitted>
-  <Payment:PaymentProcessed>
-  {OrderConfirmation}
-  ---
-  %Customer:OrderConfirmation%
+```yaml
+---
+flows:
+  StartCheckout:
+    - t: Customer/Cart
+    - c: StartCheckout
+    - e: Order/CheckoutStarted
+      props:
+        orderId: uuid
+        customerId: uuid
+        items: array
+    - v: CheckoutSummary
+
+  SubmitPayment:
+    - t: Customer/CheckoutSummary
+    - c: SubmitPayment
+      props:
+        orderId: uuid
+        paymentMethod: string
+    - e: Order/PaymentSubmitted
+    - e: Payment/PaymentProcessed
+    - v: OrderConfirmation
 ```
 
 ### Multiple Flows with Tests
 
 A document containing related flows and their tests:
 
-```emlang
-/RegisterUser/
-  %Customer:RegistrationForm%
-  [RegisterUser]
-    email
-    password
-  <User:UserRegistered>
-    userId
-    email
-  {UserProfile}
+```yaml
 ---
-/LoginUser/
-  %Customer:LoginForm%
-  [LoginUser]
-    email
-    password
-  <User:UserLoggedIn>
-    userId
-    sessionId
-  {Dashboard}
----
-?RegistrationCreatesProfile?
-  [RegisterUser]
-    email:alice@example.com
-    password:secret123
-  <User:UserRegistered>
-    userId:user-1
-    email:alice@example.com
----
-?DuplicateEmailRejected?
-  <User:UserRegistered>
-    email:alice@example.com
-  [RegisterUser]
-    email:alice@example.com
-    password:newpassword
-  !EmailAlreadyUsed!
-    email:alice@example.com
+flows:
+  RegisterUser:
+    - t: Customer/RegistrationForm
+    - c: RegisterUser
+      props:
+        email: string
+        password: string
+    - e: User/UserRegistered
+      props:
+        userId: uuid
+        email: string
+    - v: UserProfile
+
+  LoginUser:
+    - t: Customer/LoginForm
+    - c: LoginUser
+      props:
+        email: string
+        password: string
+    - e: User/UserLoggedIn
+      props:
+        userId: uuid
+        sessionId: uuid
+    - v: Dashboard
+
+tests:
+  RegistrationCreatesProfile:
+    when:
+      - c: RegisterUser
+        props:
+          email: alice@example.com
+          password: secret123
+    then:
+      - e: User/UserRegistered
+        props:
+          userId: user-1
+          email: alice@example.com
+
+  DuplicateEmailRejected:
+    given:
+      - e: User/UserRegistered
+        props:
+          email: alice@example.com
+    when:
+      - c: RegisterUser
+        props:
+          email: alice@example.com
+          password: newpassword
+    then:
+      - x: EmailAlreadyUsed
 ```
 
 ### Event Storming Notes
 
 Partial flows are valid — useful for early exploration:
 
-```emlang
-/OrderLifecycle/
-  <OrderPlaced>
-  <PaymentReceived>
-  <OrderShipped>
-  <OrderDelivered>
+```yaml
 ---
-/OrderCancellation/
-  <OrderPlaced>
-  <OrderCancelled>
-  <RefundIssued>
+flows:
+  OrderLifecycle:
+    - e: OrderPlaced
+    - e: PaymentReceived
+    - e: OrderShipped
+    - e: OrderDelivered
+
+  OrderCancellation:
+    - e: OrderPlaced
+    - e: OrderCancelled
+    - e: RefundIssued
 ```
 
 ## Tools

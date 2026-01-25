@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "emlang-v0.2.0",
+  "title": "Emlang",
+  "description": "Schema for Emlang v0.2.0 - Event Modeling DSL",
+  "type": "object",
+  "properties": {
+    "flows": {
+      "$ref": "#/$defs/flows"
+    },
+    "tests": {
+      "$ref": "#/$defs/tests"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "flows": {
+      "description": "Named flows or anonymous flow",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/elementList"
+          }
+        },
+        {
+          "$ref": "#/$defs/elementList"
+        }
+      ]
+    },
+    "tests": {
+      "description": "Named tests",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/test"
+      }
+    },
+    "test": {
+      "type": "object",
+      "properties": {
+        "given": {
+          "description": "Pre-conditions (events, views)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/givenElement"
+          }
+        },
+        "when": {
+          "description": "Command being tested",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/commandElement"
+          },
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "then": {
+          "description": "Expected results (events, views, exceptions)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/thenElement"
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["when", "then"],
+      "additionalProperties": false
+    },
+    "elementList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/element"
+      },
+      "minItems": 1
+    },
+    "element": {
+      "type": "object",
+      "properties": {
+        "t": { "type": "string" },
+        "trg": { "type": "string" },
+        "trigger": { "type": "string" },
+        "c": { "type": "string" },
+        "cmd": { "type": "string" },
+        "command": { "type": "string" },
+        "e": { "type": "string" },
+        "evt": { "type": "string" },
+        "event": { "type": "string" },
+        "x": { "type": "string" },
+        "err": { "type": "string" },
+        "exception": { "type": "string" },
+        "v": { "type": "string" },
+        "view": { "type": "string" },
+        "props": { "$ref": "#/$defs/props" }
+      },
+      "oneOf": [
+        { "required": ["t"] },
+        { "required": ["trg"] },
+        { "required": ["trigger"] },
+        { "required": ["c"] },
+        { "required": ["cmd"] },
+        { "required": ["command"] },
+        { "required": ["e"] },
+        { "required": ["evt"] },
+        { "required": ["event"] },
+        { "required": ["x"] },
+        { "required": ["err"] },
+        { "required": ["exception"] },
+        { "required": ["v"] },
+        { "required": ["view"] }
+      ],
+      "additionalProperties": false
+    },
+    "givenElement": {
+      "description": "Events or views for pre-conditions",
+      "type": "object",
+      "properties": {
+        "e": { "type": "string" },
+        "evt": { "type": "string" },
+        "event": { "type": "string" },
+        "v": { "type": "string" },
+        "view": { "type": "string" },
+        "props": { "$ref": "#/$defs/props" }
+      },
+      "oneOf": [
+        { "required": ["e"] },
+        { "required": ["evt"] },
+        { "required": ["event"] },
+        { "required": ["v"] },
+        { "required": ["view"] }
+      ],
+      "additionalProperties": false
+    },
+    "commandElement": {
+      "description": "Command element",
+      "type": "object",
+      "properties": {
+        "c": { "type": "string" },
+        "cmd": { "type": "string" },
+        "command": { "type": "string" },
+        "props": { "$ref": "#/$defs/props" }
+      },
+      "oneOf": [
+        { "required": ["c"] },
+        { "required": ["cmd"] },
+        { "required": ["command"] }
+      ],
+      "additionalProperties": false
+    },
+    "thenElement": {
+      "description": "Events, views, or exceptions for expected results",
+      "type": "object",
+      "properties": {
+        "e": { "type": "string" },
+        "evt": { "type": "string" },
+        "event": { "type": "string" },
+        "x": { "type": "string" },
+        "err": { "type": "string" },
+        "exception": { "type": "string" },
+        "v": { "type": "string" },
+        "view": { "type": "string" },
+        "props": { "$ref": "#/$defs/props" }
+      },
+      "oneOf": [
+        { "required": ["e"] },
+        { "required": ["evt"] },
+        { "required": ["event"] },
+        { "required": ["x"] },
+        { "required": ["err"] },
+        { "required": ["exception"] },
+        { "required": ["v"] },
+        { "required": ["view"] }
+      ],
+      "additionalProperties": false
+    },
+    "props": {
+      "description": "Free-form properties"
+    }
+  }
+}
