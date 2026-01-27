@@ -7,33 +7,32 @@ Emlang is a YAML-based DSL for describing systems with Event Modeling patterns.
 Emlang uses standard YAML syntax, making it compatible with all YAML tooling (syntax highlighting, formatting,
 validation). The domain-specific semantics come from the structure and element prefixes.
 
-An Emlang file contains one or more YAML documents (separated by `---`), each with `flows:` and/or `tests:` top-level
+An Emlang file contains one or more YAML documents (separated by `---`), each with `slices:` and/or `tests:` top-level
 keys.
 
 ```yaml
 ---
-flows:
+slices:
   # Direct form: list of elements
-  FlowName:
+  SliceName:
     - t: Swimlane/TriggerName
     - c: DoSomething
     - e: SomethingDone
 
   # Extended form: steps with attached tests
-  AnotherFlow:
+  AnotherSlice:
     steps:
       - t: Swimlane/Trigger
       - c: DoAction
       - e: ActionDone
     tests:
       TestName:
-        for: DoAction
         when:
           - c: DoAction
         then:
           - e: ActionDone
 
-# Exploratory tests (not attached to a flow)
+# Exploratory tests (not attached to a slice)
 tests:
   ExploratoryTest:
     given:
@@ -60,13 +59,25 @@ All prefix forms are semantically equivalent. Choose based on readability prefer
 
 ### Element Format
 
-Each element is a YAML list item with a type prefix and optional properties:
+Each element is a YAML list item with exactly one type key and optional properties:
 
 ```yaml
 - c: PlaceOrder
   props:
     orderId: uuid
     items: array
+```
+
+An element must have exactly one type key (`t:`, `c:`, `e:`, `x:`, or `v:`). Multiple type keys in the same item is invalid:
+
+```yaml
+# ❌ Invalid: two type keys in the same item
+- c: RegisterUser
+  e: UserRegistered
+
+# ✅ Valid: separate items
+- c: RegisterUser
+- e: UserRegistered
 ```
 
 ### Naming
@@ -117,17 +128,17 @@ Properties can also be a list:
     - items
 ```
 
-## Flows
+## Slices
 
-A flow is a named sequence of elements representing a business scenario.
+A slice is a named sequence of elements representing a business scenario.
 
 ### Direct Form
 
-When a flow has no attached tests, use the direct form (list of elements):
+When a slice has no attached tests, use the direct form (list of elements):
 
 ```yaml
 ---
-flows:
+slices:
   UserRegistration:
     - t: Customer/RegistrationForm
     - c: RegisterUser
@@ -137,11 +148,11 @@ flows:
 
 ### Extended Form
 
-When a flow has attached tests, use the extended form with `steps:` and `tests:`:
+When a slice has attached tests, use the extended form with `steps:` and `tests:`:
 
 ```yaml
 ---
-flows:
+slices:
   UserRegistration:
     steps:
       - t: Customer/RegistrationForm
@@ -150,7 +161,6 @@ flows:
       - v: UserProfile
     tests:
       EmailMustBeUnique:
-        for: RegisterUser
         given:
           - e: User/UserRegistered
             props:
@@ -163,17 +173,15 @@ flows:
           - x: EmailAlreadyInUse
 ```
 
-The `for:` key attaches the test to a specific element in the flow for visual placement in diagrams. It references an element by name within the same flow.
+Both forms are valid and can coexist in the same document. A parser detects the form by checking if the slice value is a list (direct) or a mapping with `steps:` (extended).
 
-Both forms are valid and can coexist in the same document. A parser detects the form by checking if the flow value is a list (direct) or a mapping with `steps:` (extended).
+### Multiple Slices
 
-### Multiple Flows
-
-Multiple flows can be defined in the same document:
+Multiple slices can be defined in the same document:
 
 ```yaml
 ---
-flows:
+slices:
   UserRegistration:
     - t: Customer/RegistrationForm
     - c: RegisterUser
@@ -186,13 +194,13 @@ flows:
     - v: Dashboard
 ```
 
-### Anonymous Flows
+### Anonymous Slices
 
-A flow without a name is valid but not referenceable:
+A slice without a name is valid but not referenceable:
 
 ```yaml
 ---
-flows:
+slices:
   - t: Customer/ContactForm
   - c: SubmitInquiry
   - e: InquiryReceived
@@ -206,10 +214,10 @@ Tests can be defined in two places:
 
 | Location | Purpose |
 |----------|---------|
-| Inside a flow (`tests:` in extended form) | Attached tests, displayed in diagrams |
-| At document root (`tests:`) | Exploratory tests, not yet attached to a flow |
+| Inside a slice (`tests:` in extended form) | Attached to a slice |
+| At document root (`tests:`) | Exploratory tests, not yet attached to a slice |
 
-Exploratory tests at the root level are useful during early modeling when flows are not yet well-defined. As the model matures, tests can be moved into their respective flows.
+Exploratory tests at the root level are useful during early modeling when slices are not yet well-defined. As the model matures, tests can be moved into their respective slices.
 
 ### Test Structure
 
@@ -236,35 +244,6 @@ tests:
     then:
       - x: EmailAlreadyInUse
 ```
-
-### Attaching Tests to Flow Elements
-
-Tests defined inside a flow (extended form) can use the `for:` key to attach to a specific element for visual placement in diagrams:
-
-```yaml
----
-flows:
-  UserRegistration:
-    steps:
-      - t: Customer/RegistrationForm
-      - c: RegisterUser
-      - e: User/UserRegistered
-    tests:
-      EmailMustBeUnique:
-        for: RegisterUser
-        given:
-          - e: User/UserRegistered
-            props:
-              email: joe@example.com
-        when:
-          - c: RegisterUser
-            props:
-              email: joe@example.com
-        then:
-          - x: EmailAlreadyInUse
-```
-
-The `for:` key is only valid for tests inside a flow. It references an element by name within the same flow. The diagram generator uses this to position the test visually below the referenced element.
 
 ### Test with Exception
 
@@ -335,11 +314,11 @@ tests:
 
 ### Single Document
 
-A document can contain both flows and tests:
+A document can contain both slices and tests:
 
 ```yaml
 ---
-flows:
+slices:
   UserRegistration:
     - t: Customer/RegistrationForm
     - c: RegisterUser
@@ -366,14 +345,14 @@ Use `---` to separate YAML documents in a single file:
 
 ```yaml
 ---
-flows:
+slices:
   UserRegistration:
     - t: Customer/RegistrationForm
     - c: RegisterUser
     - e: User/UserRegistered
 
 ---
-flows:
+slices:
   UserDeletion:
     - t: Admin/UserManagement
     - c: DeleteUser
@@ -396,7 +375,7 @@ Standard YAML comments with `#`:
 
 ```yaml
 ---
-flows:
+slices:
   OrderPlacement:
     - t: Customer/ProductPage    # User clicks "Buy Now"
     - c: PlaceOrder              # Validates inventory
@@ -411,8 +390,8 @@ flows:
 
 ```yaml
 ---
-flows:
-  # Extended form: flow with attached tests
+slices:
+  # Extended form: slice with attached tests
   UserRegistration:
     steps:
       - t: Customer/RegistrationForm
@@ -429,7 +408,6 @@ flows:
       - v: UserProfile
     tests:
       EmailMustBeUnique:
-        for: RegisterUser
         given:
           - e: User/UserRegistered
             props:
@@ -442,7 +420,6 @@ flows:
           - x: EmailAlreadyInUse
 
       PasswordMustBeStrong:
-        for: RegisterUser
         when:
           - c: RegisterUser
             props:
@@ -451,7 +428,7 @@ flows:
         then:
           - x: PasswordTooWeak
 
-  # Direct form: flow without attached tests
+  # Direct form: slice without attached tests
   EmailVerification:
     - t: User/VerificationLink
     - c: VerifyEmail
@@ -461,7 +438,7 @@ flows:
     - v: UserProfile
 
 ---
-flows:
+slices:
   OrderPlacement:
     steps:
       - t: Customer/Cart
@@ -478,7 +455,6 @@ flows:
       - v: OrderConfirmation
     tests:
       CannotCancelShippedOrder:
-        for: PlaceOrder
         given:
           - e: Order/OrderShipped
             props:
@@ -502,7 +478,7 @@ flows:
     - e: Payment/RefundInitiated
     - v: OrderDetails
 
-# Exploratory tests at root level (not yet attached to a flow)
+# Exploratory tests at root level (not yet attached to a slice)
 tests:
   SomeEarlyIdea:
     when:
