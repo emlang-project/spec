@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/emlang-project/spec/schema.json",
+  "title": "Emlang",
+  "description": "Schema for Emlang - Event Modeling DSL",
+  "type": "object",
+  "properties": {
+    "slices": {
+      "$ref": "#/$defs/slices"
+    }
+  },
+  "required": ["slices"],
+  "additionalProperties": false,
+  "$defs": {
+    "slices": {
+      "description": "Named slices",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/slice"
+          }
+        }
+      ]
+    },
+    "slice": {
+      "description": "A slice in empty, direct, or extended form",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/elementList"
+        },
+        {
+          "$ref": "#/$defs/extendedSlice"
+        }
+      ]
+    },
+    "extendedSlice": {
+      "description": "Extended slice with steps and optional tests",
+      "type": "object",
+      "properties": {
+        "steps": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/elementList" }
+          ]
+        },
+        "tests": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/tests" }
+          ]
+        }
+      },
+      "required": ["steps"],
+      "additionalProperties": false
+    },
+    "tests": {
+      "description": "Tests attached to a slice",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/test"
+      }
+    },
+    "test": {
+      "type": "object",
+      "properties": {
+        "given": {
+          "description": "Pre-conditions (events, views)",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/givenElement"
+              }
+            }
+          ]
+        },
+        "when": {
+          "description": "Command being tested",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/commandElement"
+              }
+            }
+          ]
+        },
+        "then": {
+          "description": "Expected results (events, views, exceptions)",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/thenElement"
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "elementList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/element"
+      },
+      "minItems": 1
+    },
+    "element": {
+      "type": "object",
+      "properties": {
+        "t": { "$ref": "#/$defs/elementName" },
+        "trg": { "$ref": "#/$defs/elementName" },
+        "trigger": { "$ref": "#/$defs/elementName" },
+        "c": { "$ref": "#/$defs/elementName" },
+        "cmd": { "$ref": "#/$defs/elementName" },
+        "command": { "$ref": "#/$defs/elementName" },
+        "e": { "$ref": "#/$defs/elementName" },
+        "evt": { "$ref": "#/$defs/elementName" },
+        "event": { "$ref": "#/$defs/elementName" },
+        "x": { "$ref": "#/$defs/elementName" },
+        "err": { "$ref": "#/$defs/elementName" },
+        "exception": { "$ref": "#/$defs/elementName" },
+        "v": { "$ref": "#/$defs/elementName" },
+        "view": { "$ref": "#/$defs/elementName" },
+        "props": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/props" }] }
+      },
+      "oneOf": [
+        { "required": ["t"] },
+        { "required": ["trg"] },
+        { "required": ["trigger"] },
+        { "required": ["c"] },
+        { "required": ["cmd"] },
+        { "required": ["command"] },
+        { "required": ["e"] },
+        { "required": ["evt"] },
+        { "required": ["event"] },
+        { "required": ["x"] },
+        { "required": ["err"] },
+        { "required": ["exception"] },
+        { "required": ["v"] },
+        { "required": ["view"] }
+      ],
+      "additionalProperties": false
+    },
+    "givenElement": {
+      "description": "Events or views for pre-conditions",
+      "type": "object",
+      "properties": {
+        "e": { "$ref": "#/$defs/elementName" },
+        "evt": { "$ref": "#/$defs/elementName" },
+        "event": { "$ref": "#/$defs/elementName" },
+        "v": { "$ref": "#/$defs/elementName" },
+        "view": { "$ref": "#/$defs/elementName" },
+        "props": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/props" }] }
+      },
+      "oneOf": [
+        { "required": ["e"] },
+        { "required": ["evt"] },
+        { "required": ["event"] },
+        { "required": ["v"] },
+        { "required": ["view"] }
+      ],
+      "additionalProperties": false
+    },
+    "commandElement": {
+      "description": "Command element",
+      "type": "object",
+      "properties": {
+        "c": { "$ref": "#/$defs/elementName" },
+        "cmd": { "$ref": "#/$defs/elementName" },
+        "command": { "$ref": "#/$defs/elementName" },
+        "props": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/props" }] }
+      },
+      "oneOf": [
+        { "required": ["c"] },
+        { "required": ["cmd"] },
+        { "required": ["command"] }
+      ],
+      "additionalProperties": false
+    },
+    "thenElement": {
+      "description": "Events, views, or exceptions for expected results",
+      "type": "object",
+      "properties": {
+        "e": { "$ref": "#/$defs/elementName" },
+        "evt": { "$ref": "#/$defs/elementName" },
+        "event": { "$ref": "#/$defs/elementName" },
+        "x": { "$ref": "#/$defs/elementName" },
+        "err": { "$ref": "#/$defs/elementName" },
+        "exception": { "$ref": "#/$defs/elementName" },
+        "v": { "$ref": "#/$defs/elementName" },
+        "view": { "$ref": "#/$defs/elementName" },
+        "props": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/props" }] }
+      },
+      "oneOf": [
+        { "required": ["e"] },
+        { "required": ["evt"] },
+        { "required": ["event"] },
+        { "required": ["x"] },
+        { "required": ["err"] },
+        { "required": ["exception"] },
+        { "required": ["v"] },
+        { "required": ["view"] }
+      ],
+      "additionalProperties": false
+    },
+    "elementName": {
+      "description": "Element name, must not be empty and must not end with /",
+      "type": "string",
+      "minLength": 1,
+      "pattern": "[^/]$"
+    },
+    "props": {
+      "description": "Free-form properties",
+      "type": "object"
+    }
+  }
+}
