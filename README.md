@@ -7,7 +7,7 @@ This repository contains the formal specification for Emlang, a YAML-based DSL f
 
 ## Contents
 
-- [SPEC.md](SPEC.md) — The specification (RFC 2119)
+- [SPEC.md](SPEC.md) — The specification
 - [schema.json](schema.json) — JSON Schema for validation
 
 ## Schema Usage
